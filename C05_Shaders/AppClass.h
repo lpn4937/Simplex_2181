@@ -30,6 +30,8 @@ class AppClass
 	GLuint m_uVBO = 0; //Vertex Buffer Object
 	
 	glm::vec3 m_v3Color = glm::vec3(-1.0f); //Color of shape
+	glm::vec3 m_v4Color = glm::vec3(-1.0f); //Color of shape
+
 
 	bool m_bRunning = true; //Running Flag
 		
