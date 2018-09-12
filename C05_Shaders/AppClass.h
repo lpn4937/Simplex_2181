@@ -34,6 +34,7 @@ class AppClass
 
 
 	bool m_bRunning = true; //Running Flag
+	bool m_complementary = false;
 		
 public:
 	/*
