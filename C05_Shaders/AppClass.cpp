@@ -67,7 +67,7 @@ void AppClass::InitOpenGL(void)
 }
 void AppClass::InitShaders(void)
 {
-	m_uShaderProgramID = LoadShaders("Shaders//BasicColor.vs", "Shaders//BasicColor.fs");
+	m_uShaderProgramID = LoadShaders("Shaders//BasicColor.vs", "Shaders//BasicColorInvert.fs");
 	glUseProgram(m_uShaderProgramID);
 }
 void AppClass::InitVariables(void)
@@ -75,24 +75,15 @@ void AppClass::InitVariables(void)
 	std::vector<glm::vec3> lVertex;
 	//vertex 1
 	lVertex.push_back(glm::vec3(-1.0f, -1.0f, 0.0f)); //position
-	if(m_complementary)
-		lVertex.push_back(glm::vec3(0.0f, 1.0f, 1.0f)); //color
-	else
-		lVertex.push_back(glm::vec3(1.0f, 0.0f, 0.0f)); //color
+	lVertex.push_back(glm::vec3(1.0f, 0.0f, 0.0f)); //color
 
 	//vertex 2
 	lVertex.push_back(glm::vec3(1.0f, -1.0f, 0.0f)); //position
-	if(m_complementary)
-		lVertex.push_back(glm::vec3(1.0f, 0.0f, 1.0f)); //color
-	else
-		lVertex.push_back(glm::vec3(0.0f, 1.0f, 0.0f)); //color
+	lVertex.push_back(glm::vec3(0.0f, 1.0f, 0.0f)); //color
 
 	//vertex 3
 	lVertex.push_back(glm::vec3(0.0f, 1.0f, 0.0f)); //position
-	if (m_complementary)
-		lVertex.push_back(glm::vec3(1.0f, 1.0f, 0.0f)); //color
-	else
-		lVertex.push_back(glm::vec3(0.0f, 0.0f, 1.0f)); //color
+	lVertex.push_back(glm::vec3(0.0f, 0.0f, 1.0f)); //color
 	
 	glGenVertexArrays(1, &m_uVAO);//Generate vertex array object
 	glGenBuffers(1, &m_uVBO);//Generate Vertex Buffered Object
@@ -120,8 +111,6 @@ void AppClass::ProcessKeyboard(sf::Event a_event)
 		m_bRunning = false;
 	else if (sf::Keyboard::isKeyPressed(sf::Keyboard::Num4)) {
 		m_complementary = !m_complementary;
-		m_v3Color = glm::vec3(-1.0f, -1.0f, -1.0f);
-		InitVariables();
 	}
 	else if (sf::Keyboard::isKeyPressed(sf::Keyboard::Num1)) //I am currently pressing the Num1 (not the same as above)
 		m_v3Color = glm::vec3(1.0f, 0.0f, 0.0f);
@@ -129,11 +118,8 @@ void AppClass::ProcessKeyboard(sf::Event a_event)
 		m_v3Color = glm::vec3(0.0f, 1.0f, 0.0f);
 	else if (sf::Keyboard::isKeyPressed(sf::Keyboard::Num3))
 		m_v3Color = glm::vec3(0.0f, 0.0f, 1.0f);
-	else if (sf::Keyboard::isKeyPressed(sf::Keyboard::Num0)) {
-		m_complementary = false;
+	else if (sf::Keyboard::isKeyPressed(sf::Keyboard::Num0))
 		m_v3Color = glm::vec3(-1.0f, -1.0f, -1.0f);
-		InitVariables();
-	}
 }
 void AppClass::Display(void)
 {
@@ -141,8 +127,19 @@ void AppClass::Display(void)
 	glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
 	//read uniforms and send values
-	GLuint SolidColor = glGetUniformLocation(m_uShaderProgramID, "SolidColor");
-	glUniform3f(SolidColor, m_v3Color.r, m_v3Color.g, m_v3Color.b);
+	if (m_complementary)
+	{
+		GLuint invertBool = glGetUniformLocation(m_uShaderProgramID, "Complimentary");
+		glUniform1f(invertBool, true);
+	}
+	else
+	{
+		GLuint invertBool = glGetUniformLocation(m_uShaderProgramID, "Complimentary");
+		glUniform1f(invertBool, false);
+
+		GLuint SolidColor = glGetUniformLocation(m_uShaderProgramID, "SolidColor");
+		glUniform3f(SolidColor, m_v3Color.r, m_v3Color.g, m_v3Color.b);
+	}
 
 	//draw content
 	glDrawArrays(GL_TRIANGLES, 0, 3);
