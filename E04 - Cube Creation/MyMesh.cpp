@@ -21,7 +21,7 @@ void MyMesh::GenerateCircle(float a_fRadius, int a_nSubdivisions, vector3 a_v3Co
 	{
 		double radians = (2*PI/a_nSubdivisions) * i;
 		vector3 tempVector = vector3(sin(radians)*a_fRadius,cos(radians)*a_fRadius,0);
-		AddTri(vector3(0, 0, 0), circleVector, tempVector);
+		AddTri(vector3(0, 0, 0), tempVector, circleVector);
 		circleVector = tempVector;
 	}
 
