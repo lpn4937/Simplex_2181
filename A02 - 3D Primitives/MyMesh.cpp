@@ -276,7 +276,17 @@ void MyMesh::GenerateCone(float a_fRadius, float a_fHeight, int a_nSubdivisions,
 	Init();
 
 	// Replace this with your code
-	GenerateCube(a_fRadius * 2.0f, a_v3Color);
+	vector3 circleVector = vector3(0, a_fRadius, 0);
+	for (size_t i = 0; i < a_nSubdivisions + 1; i++)
+	{
+		double radians = (2 * PI / a_nSubdivisions) * i;
+		vector3 tempVector = vector3(sin(radians)*a_fRadius, cos(radians)*a_fRadius, 0);
+		//Face
+		AddTri(vector3(0, 0, 0), tempVector, circleVector);
+		//Cone shape
+		AddTri(circleVector, tempVector, vector3(0, 0, a_fHeight));
+		circleVector = tempVector;
+	}
 	// -------------------------------
 
 	// Adding information about color
@@ -300,7 +310,19 @@ void MyMesh::GenerateCylinder(float a_fRadius, float a_fHeight, int a_nSubdivisi
 	Init();
 
 	// Replace this with your code
-	GenerateCube(a_fRadius * 2.0f, a_v3Color);
+	vector3 circleVector = vector3(0, a_fRadius, 0);
+	for (size_t i = 0; i < a_nSubdivisions + 1; i++)
+	{
+		double radians = (2 * PI / a_nSubdivisions) * i;
+		vector3 tempVector = vector3(sin(radians)*a_fRadius, cos(radians)*a_fRadius, 0);
+		//Outer cylinder
+		AddQuad(circleVector, tempVector, vector3(circleVector.x,circleVector.y,circleVector.z + a_fHeight), vector3(tempVector.x,tempVector.y,tempVector.z + a_fHeight));
+		//Top face
+		AddTri(vector3(0, 0, 0), tempVector, circleVector);
+		//Bottom face
+		AddTri(vector3(0, 0, a_fHeight), vector3(circleVector.x,circleVector.y,a_fHeight),vector3(tempVector.x,tempVector.y,a_fHeight));
+		circleVector = tempVector;
+	}
 	// -------------------------------
 
 	// Adding information about color
@@ -330,12 +352,32 @@ void MyMesh::GenerateTube(float a_fOuterRadius, float a_fInnerRadius, float a_fH
 	Init();
 
 	// Replace this with your code
-	GenerateCube(a_fOuterRadius * 2.0f, a_v3Color);
+	vector3 circleOutVector = vector3(0, a_fOuterRadius, 0);
+	vector3 circleInVector = vector3(0, a_fInnerRadius, 0);
+	for (size_t i = 0; i < a_nSubdivisions + 1; i++)
+	{
+		double radians = (2 * PI / a_nSubdivisions) * i;
+		vector3 tempOutVector = vector3(sin(radians)*a_fOuterRadius, cos(radians)*a_fOuterRadius, 0);
+		vector3 tempInVector = vector3(sin(radians)*a_fInnerRadius, cos(radians)*a_fInnerRadius, 0);
+		//Outer cylinder
+		AddQuad(tempOutVector, circleOutVector, AddHeight(tempOutVector, a_fHeight), AddHeight(circleOutVector, a_fHeight));
+		//Inner cylinder
+		AddQuad(circleInVector, tempInVector, AddHeight(circleInVector, a_fHeight), AddHeight(tempInVector, a_fHeight));
+		//Top face
+		AddQuad(tempInVector, circleInVector,tempOutVector, circleOutVector);
+		//Bottom face
+		AddQuad(AddHeight(circleInVector,a_fHeight), AddHeight(tempInVector,a_fHeight), AddHeight(circleOutVector, a_fHeight), AddHeight(tempOutVector, a_fHeight));
+		circleOutVector = tempOutVector;
+		circleInVector = tempInVector;
+	}
 	// -------------------------------
 
 	// Adding information about color
 	CompleteMesh(a_v3Color);
 	CompileOpenGL3X();
+}
+vector3 MyMesh::AddHeight(vector3 vector,float height) {
+	return vector3(vector.x, vector.y, vector.z + height);
 }
 void MyMesh::GenerateTorus(float a_fOuterRadius, float a_fInnerRadius, int a_nSubdivisionsA, int a_nSubdivisionsB, vector3 a_v3Color)
 {
@@ -380,14 +422,42 @@ void MyMesh::GenerateSphere(float a_fRadius, int a_nSubdivisions, vector3 a_v3Co
 		GenerateCube(a_fRadius * 2.0f, a_v3Color);
 		return;
 	}
-	if (a_nSubdivisions > 6)
-		a_nSubdivisions = 6;
+	if (a_nSubdivisions > 20)
+		a_nSubdivisions = 20;
 
 	Release();
 	Init();
 
+	vector3 circleVectorCol = vector3(0, a_fRadius, 0);
 	// Replace this with your code
-	GenerateCube(a_fRadius * 2.0f, a_v3Color);
+	for (size_t i = 1; i < a_nSubdivisions; i++)
+	{
+		double radians = (2 * PI / a_nSubdivisions) * i; //angle of vertex on starting circle
+		double radians2 = (2 * PI / a_nSubdivisions) * (i+1); //angle of vertex after prev
+		vector3 nextVectorCol = vector3(sin(radians)*a_fRadius, cos(radians)*a_fRadius, 0);  //vertex coords
+		vector3 nextVectorCol2 = vector3(sin(radians2)*a_fRadius, cos(radians2)*a_fRadius, 0); //vertex after coords
+
+		vector3 circleVectorRow = nextVectorCol;
+		vector3 circleVectorRow2 = nextVectorCol2;
+		for (size_t j = 0; j < a_nSubdivisions + 1; j++)
+		{
+			double radians3 = (2 * PI / a_nSubdivisions) * j; //Gives angle of vertexes on horizontal circles
+			vector3 nextVectorRow = vector3(sin(radians3)*nextVectorCol.x, nextVectorCol.y, cos(radians3)*nextVectorCol.x); //vertex coords
+			vector3 nextVectorRow2 = vector3(sin(radians3)*nextVectorCol2.x, nextVectorCol2.y, cos(radians3)*nextVectorCol2.x); //vertex after coords
+			if (i == 1)
+			{
+				AddTri(nextVectorRow, circleVectorRow, vector3(0, a_fRadius, 0)); //top of circle
+				AddQuad(circleVectorRow, nextVectorRow, circleVectorRow2, nextVectorRow2); //first side of circle
+			}
+			else if(i < a_nSubdivisions)
+			{
+				AddQuad(circleVectorRow, nextVectorRow, circleVectorRow2, nextVectorRow2); //remaining sides of circle
+			}
+			circleVectorRow = nextVectorRow;
+			circleVectorRow2 = nextVectorRow2;
+		}
+		circleVectorCol = nextVectorCol;
+	}
 	// -------------------------------
 
 	// Adding information about color

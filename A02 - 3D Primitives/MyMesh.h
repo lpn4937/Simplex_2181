@@ -191,6 +191,7 @@ public:
 	OUTPUT: ---
 	*/
 	void GenerateTube(float a_fOuterRadius, float a_fInnerRadius, float a_fHeight, int a_nSubdivisions, vector3 a_v3Color = C_WHITE);
+	vector3 AddHeight(vector3 vector, float height);
 	/*
 	USAGE: Generates a torus mesh
 	ARGUMENTS:
