@@ -14,6 +14,7 @@ class Application
 {
 	String m_sProgrammer = "Alberto Bobadilla - labigm@rit.edu";
 	std::vector<vector3> m_stopsList;
+	int iterate;
 	Simplex::Model* m_pModel = nullptr;
 private:
 	static ImGuiObject gui; //GUI object

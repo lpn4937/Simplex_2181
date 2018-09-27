@@ -2,12 +2,13 @@
 void Application::InitVariables(void)
 {
 	//Change this to your name and email
-	m_sProgrammer = "Alberto Bobadilla - labigm@rit.edu";
+	m_sProgrammer = "Lucas - lpn4937@rit.edu";
 
 	//Set the position and target of the camera
 	m_pCameraMngr->SetPositionTargetAndUpward(vector3(5.0f,3.0f,15.0f), ZERO_V3, AXIS_Y);
 
 	m_pModel = new Simplex::Model();
+	iterate = 0;
 	m_pModel->Load("Sorted\\WallEye.bto");
 	
 	m_stopsList.push_back(vector3(-4.0f, -2.0f, 5.0f));
@@ -53,13 +54,18 @@ void Application::Display(void)
 
 	//calculate the current position
 	vector3 v3CurrentPos;
-	
 
 
 
 
 	//your code goes here
 	v3CurrentPos = vector3(0.0f, 0.0f, 0.0f);
+	vector3 interpolation = ((m_stopsList[iterate] - v3CurrentPos)*(fTimer / 8));
+	v3CurrentPos += interpolation;
+	if (length(v3CurrentPos - m_stopsList[iterate]) <= 1.0f) {
+		iterate++;
+	}
+	std::cout << "Length: " << length(v3CurrentPos - m_stopsList[iterate]) << std::endl;
 	//-------------------
 	
 
