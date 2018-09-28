@@ -53,19 +53,25 @@ void Application::Display(void)
 	fTimer += m_pSystem->GetDeltaTime(uClock); //get the delta time for that timer
 
 	//calculate the current position
-	vector3 v3CurrentPos;
-
-
+	vector3 v3CurrentPos = vector3(0,0,0);
+	vector3 interpolation = vector3(0, 0, 0);
 
 
 	//your code goes here
-	v3CurrentPos = vector3(0.0f, 0.0f, 0.0f);
-	vector3 interpolation = ((m_stopsList[iterate] - v3CurrentPos)*(fTimer / 8));
-	v3CurrentPos += interpolation;
-	if (length(v3CurrentPos - m_stopsList[iterate]) <= 1.0f) {
-		iterate++;
+	if (iterate >= 1)
+		interpolation = glm::lerp(m_stopsList[iterate-1], m_stopsList[iterate], fTimer / 4);
+	else
+		interpolation = glm::lerp(v3CurrentPos, m_stopsList[iterate], fTimer / 4);
+
+	if (iterate != m_stopsList.size() - 1)
+	{
+		v3CurrentPos = interpolation;
 	}
-	std::cout << "Length: " << length(v3CurrentPos - m_stopsList[iterate]) << std::endl;
+	if (length(v3CurrentPos - m_stopsList[iterate]) <= 0.1f) {
+		iterate++;
+		std::cout << "Completed: " << iterate << std::endl;
+	}
+	//std::cout << "Length: " << length(v3CurrentPos - m_stopsList[iterate]) << std::endl;
 	//-------------------
 	
 
