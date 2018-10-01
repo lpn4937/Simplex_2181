@@ -418,11 +418,10 @@ void MyMesh::GenerateTorus(float a_fOuterRadius, float a_fInnerRadius, int a_nSu
 		//vector3 innerCircleVector2 = outerTempVector;
 		for (size_t j = 0; j < a_nSubdivisionsB + 1; j++)
 		{
-			double s = (i + j) % a_nSubdivisionsA;
 			double radiansB = (2 * PI / a_nSubdivisionsB) * (j); //angle of vertex outer circle
 			double radiansB2 = (2 * PI / a_nSubdivisionsB) * (j + 1); //angle of vertex outer circle
 			vector3 innerTempVector = vector3(sin(radiansB)*cirRad, cos(radiansB)*cirRad, 0);  //vertex coords
-			vector3 innerTempVector2 = vector3(sin(radiansB2)*cirRad, cos(radiansB2)*cirRad, 0); //vertex after coords
+			vector3 innerTempVector2 = vector3(sin(radiansB2)*cirRad, cos(radiansB2)*cirRad,0); //vertex after coords
 			
 			vector3 Quad1 = innerTempVector + outerCircleVector;
 			vector3 Quad2 = innerTempVector2 + outerCircleVector;

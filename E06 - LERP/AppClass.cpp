@@ -8,7 +8,7 @@ void Application::InitVariables(void)
 	m_pCameraMngr->SetPositionTargetAndUpward(vector3(5.0f,3.0f,15.0f), ZERO_V3, AXIS_Y);
 
 	m_pModel = new Simplex::Model();
-	iterate = 0;
+	iterate = 1;
 	m_pModel->Load("Sorted\\WallEye.bto");
 	
 	m_stopsList.push_back(vector3(-4.0f, -2.0f, 5.0f));
@@ -60,6 +60,8 @@ void Application::Display(void)
 	//your code goes here
 	if (iterate >= 1) //after first stop
 		lastPos = m_stopsList[iterate - 1];
+	else //lastpos is last point
+		lastPos = m_stopsList[m_stopsList.size() - 1];
 
 	if (iterate < m_stopsList.size()) {
 		interpolation = glm::lerp(lastPos, m_stopsList[iterate], fTimer); //interpolation from last point to next
@@ -71,7 +73,10 @@ void Application::Display(void)
 		}
 	}
 	else
-		v3CurrentPos = m_stopsList[m_stopsList.size()-1]; //stay at final point
+	{
+		iterate = 0; //move back to start
+		v3CurrentPos = lastPos;
+	}
 
 	//-------------------
 	
