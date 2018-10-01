@@ -55,18 +55,18 @@ void Application::Display(void)
 	//calculate the current position
 	vector3 v3CurrentPos = vector3(0,0,0);
 	vector3 interpolation = vector3(0, 0, 0);
-
+	vector3 lastPos = vector3(0, 0, 0);
 
 	//your code goes here
 	if (iterate >= 1)
-		interpolation = glm::lerp(m_stopsList[iterate-1], m_stopsList[iterate], fTimer / 4);
-	else
-		interpolation = glm::lerp(v3CurrentPos, m_stopsList[iterate], fTimer / 4);
+		lastPos = m_stopsList[iterate - 1];
+	interpolation = glm::lerp(lastPos, m_stopsList[iterate], fTimer / 4);
 
-	if (iterate != m_stopsList.size() - 1)
+	if (iterate != m_stopsList.size())
 	{
 		v3CurrentPos = interpolation;
 	}
+	std::cout << "Lastpos: " << lastPos.x << " " << lastPos.y << " " << lastPos.z << " Interpolation: " << interpolation.x << " " << interpolation.y << " " << interpolation.z << std::endl;
 	if (length(v3CurrentPos - m_stopsList[iterate]) <= 0.1f) {
 		iterate++;
 		std::cout << "Completed: " << iterate << std::endl;
