@@ -58,20 +58,21 @@ void Application::Display(void)
 	vector3 lastPos = vector3(0, 0, 0);
 
 	//your code goes here
-	if (iterate >= 1)
+	if (iterate >= 1) //after first stop
 		lastPos = m_stopsList[iterate - 1];
-	interpolation = glm::lerp(lastPos, m_stopsList[iterate], fTimer / 4);
 
-	if (iterate != m_stopsList.size())
-	{
+	if (iterate < m_stopsList.size()) {
+		interpolation = glm::lerp(lastPos, m_stopsList[iterate], fTimer); //interpolation from last point to next
 		v3CurrentPos = interpolation;
+		if (length(v3CurrentPos - m_stopsList[iterate]) <= 0.1f) {
+			if (iterate < m_stopsList.size())
+				iterate++; //iterate to next item in array
+			fTimer = 0;
+		}
 	}
-	std::cout << "Lastpos: " << lastPos.x << " " << lastPos.y << " " << lastPos.z << " Interpolation: " << interpolation.x << " " << interpolation.y << " " << interpolation.z << std::endl;
-	if (length(v3CurrentPos - m_stopsList[iterate]) <= 0.1f) {
-		iterate++;
-		std::cout << "Completed: " << iterate << std::endl;
-	}
-	//std::cout << "Length: " << length(v3CurrentPos - m_stopsList[iterate]) << std::endl;
+	else
+		v3CurrentPos = m_stopsList[m_stopsList.size()-1]; //stay at final point
+
 	//-------------------
 	
 
