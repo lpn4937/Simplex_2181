@@ -2,7 +2,7 @@
 void Application::InitVariables(void)
 {
 	//Change this to your name and email
-	m_sProgrammer = "Alberto Bobadilla - labigm@rit.edu";
+	m_sProgrammer = "Lucas Nichols - lpn4937@rit.edu";
 	
 	//Set the position and target of the camera
 	//(I'm at [0,0,10], looking at [0,0,0] and up is the positive Y axis)
@@ -39,6 +39,22 @@ void Application::InitVariables(void)
 		fSize += 0.5f; //increment the size for the next orbit
 		uColor -= static_cast<uint>(decrements); //decrease the wavelength
 	}
+	fSize = .95f;
+	uSides = 3;
+	for (size_t i = 0; i < m_uOrbits; i++) //calculate torus points
+	{
+		std::vector<vector3> points;
+		for (size_t i = 0; i < uSides; i++)
+		{
+			double radians = (2 * PI / uSides) * i; //calculate angle of point
+			vector3 circleVector = vector3(sin(radians)*fSize, cos(radians)*fSize, 0); //calculate vector of each point
+			points.push_back(circleVector); //Add to vector list
+		}
+		uSides++;
+		fSize += .5f;//increment the size for the next orbit
+		m_stopsList.push_back(points); //add vector list to vector list
+		m_iterateList.push_back(0); //create new iterate int
+	}
 }
 void Application::Update(void)
 {
@@ -59,10 +75,17 @@ void Application::Display(void)
 	matrix4 m4View = m_pCameraMngr->GetViewMatrix(); //view Matrix
 	matrix4 m4Projection = m_pCameraMngr->GetProjectionMatrix(); //Projection Matrix
 	matrix4 m4Offset = IDENTITY_M4; //offset of the orbits, starts as the global coordinate system
+	matrix4 m4Offset2 = IDENTITY_M4; //Identity offset for spheres
 	/*
 		The following offset will orient the orbits as in the demo, start without it to make your life easier.
 	*/
-	//m4Offset = glm::rotate(IDENTITY_M4, 1.5708f, AXIS_Z);
+	m4Offset = glm::rotate(IDENTITY_M4, 1.5708f, AXIS_Z);
+	
+
+	//Get a timer
+	static float fTimer = 0;	//store the new timer
+	static uint uClock = m_pSystem->GenClock(); //generate a new clock for that timer
+	fTimer += m_pSystem->GetDeltaTime(uClock); //get the delta time for that timer
 
 	// draw a shapes
 	for (uint i = 0; i < m_uOrbits; ++i)
@@ -71,12 +94,36 @@ void Application::Display(void)
 
 		//calculate the current position
 		vector3 v3CurrentPos = ZERO_V3;
-		matrix4 m4Model = glm::translate(m4Offset, v3CurrentPos);
+		vector3 v3LastPos = ZERO_V3;
+		
+		if (m_iterateList[i] >= 1) //after first stop
+			v3LastPos = m_stopsList[i][m_iterateList[i] - 1];
+		else //lastPos is prev point
+			v3LastPos = m_stopsList[i][m_stopsList[i].size() - 1];
+
+		if (m_iterateList[i] < m_stopsList[i].size()) //is iterate at end of list?
+		{
+			v3CurrentPos = glm::lerp(v3LastPos, m_stopsList[i][m_iterateList[i]], fTimer); //calculate position of sphere
+			if (length(v3CurrentPos - m_stopsList[i][m_iterateList[i]]) <= .1f) //is sphere close to point?
+			{
+				for (size_t j = 0; j < m_iterateList.size(); j++)
+				{
+					m_iterateList[j]++; //increase the iterate of all circles
+				}
+				fTimer = 0; //reset lerp timer
+			}
+		}
+		else
+		{
+			m_iterateList[i] = 0; //set back to zero after last point
+			v3CurrentPos = v3LastPos;
+		}
+		
+		matrix4 m4Model = glm::translate(m4Offset2, v3CurrentPos);
 
 		//draw spheres
 		m_pMeshMngr->AddSphereToRenderList(m4Model * glm::scale(vector3(0.1)), C_WHITE);
 	}
-
 	//render list call
 	m_uRenderCallCount = m_pMeshMngr->Render();
 
