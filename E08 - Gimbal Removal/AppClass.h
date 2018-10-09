@@ -18,7 +18,8 @@ class Application
 	quaternion m_qOrientation;
 	vector3 m_v3Rotation;
 	MyMesh* m_pMesh = nullptr;
-	String m_sProgrammer = "Alberto Bobadilla - labigm@rit.edu";
+	String m_sProgrammer = "Lucas Nichols - lpn4937@rit.edu";
+	vector3 m_v3Orientation;
 
 private:
 	static ImGuiObject gui; //GUI object
