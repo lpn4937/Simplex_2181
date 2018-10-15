@@ -66,12 +66,12 @@ void Application::Display(void)
 		m_pCamera->SetPositionTargetAndUpward(AXIS_Z * -15.0f, ZERO_V3, AXIS_Y);
 		break;
 	case 5:
-		m_pCamera->SetPositionTargetAndUpward(AXIS_Z * -14.0f, ZERO_V3, AXIS_Y); //not done
+		m_pCamera->SetPositionTargetAndUpward(AXIS_Z * -14.0f, ZERO_V3, AXIS_Y);
 		m_pCamera->SetNearFar(vector2(5.0f, 1000.0f));
 		break;
 	case 6:
 		m_pCamera->ResetCamera();
-		m_pCamera->SetPositionTargetAndUpward(AXIS_Z * -15.0f, ZERO_V3, AXIS_Y); //not done
+		m_pCamera->SetPositionTargetAndUpward(AXIS_Z * -15.0f, ZERO_V3, AXIS_Y);
 		m_pCamera->SetNearFar(vector2(1.0f, 10.0f));
 		break;
 	case 7:
