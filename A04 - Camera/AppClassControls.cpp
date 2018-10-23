@@ -369,18 +369,28 @@ void Application::CameraRotation(float a_fSpeed)
 		fAngleX += fDeltaMouse * a_fSpeed;
 	}
 	//Change the Yaw and the Pitch of the camera
-	m_qOrientation = quaternion();
+	horizontalAngle += fAngleY;
+	verticalAngle -= fAngleX;
 
-	quaternion qX = glm::angleAxis(glm::radians(fAngleX), vector3(4.0f, 0.0f, 0.0f));
-	m_qOrientation = m_qOrientation * qX;
+	//Check if facing up or down - no upside down
+	if (verticalAngle < -1.6)
+		verticalAngle = -1.6;
+	if (verticalAngle > 1.6)
+		verticalAngle = 1.6;
 
-	quaternion qY = glm::angleAxis(glm::radians(-fAngleY), vector3(0.0f, 4.0f, 0.0f));
-	m_qOrientation = m_qOrientation * qY;
+	//find new target vector/ direction
+	glm::vec3 direction(cos(verticalAngle) * sin(horizontalAngle),sin(verticalAngle),cos(verticalAngle) * cos(horizontalAngle));
 
-	vector3 target = m_pCamera->GetTarget() - m_pCamera->GetPosition();
-	target = target * m_qOrientation;
-	m_pCamera->SetTarget(target + m_pCamera->GetPosition());
+	//find right of target
+	glm::vec3 right = glm::vec3(sin(horizontalAngle - PI / 2.0f),0,cos(horizontalAngle - PI / 2.0f));
 
+	//find up of target using cross of right and forward
+	glm::vec3 up = glm::cross(right, direction);
+
+	//set the new values
+	position = m_pCamera->GetPosition();
+	direction = glm::normalize(direction); //normalize for static speed
+	m_pCamera->SetPositionTargetAndUpward(position, position + direction, up);
 
 	SetCursorPos(CenterX, CenterY);//Position the mouse in the center
 }
@@ -403,7 +413,7 @@ void Application::ProcessKeyboard(void)
 		m_pCamera->MoveForward(fSpeed);
 	else if (sf::Keyboard::isKeyPressed(sf::Keyboard::S))
 		m_pCamera->MoveForward(-fSpeed);
-	else if (sf::Keyboard::isKeyPressed(sf::Keyboard::A))
+	if (sf::Keyboard::isKeyPressed(sf::Keyboard::A))
 		m_pCamera->MoveSideways(-fSpeed);
 	else if (sf::Keyboard::isKeyPressed(sf::Keyboard::D))
 		m_pCamera->MoveSideways(fSpeed);

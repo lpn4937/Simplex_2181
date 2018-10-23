@@ -18,7 +18,7 @@ class Application
 {
 	MyCamera* m_pCamera = nullptr; //Camera class
 	MyMeshManager* m_pMyMeshMngr = nullptr; //My Mesh Manager
-	String m_sProgrammer = "Alberto Bobadilla - labigm@rit.edu"; //Programmer
+	String m_sProgrammer = "Lucas Nichols - lpn4937@rit.edu"; //Programmer
 private:
 	static ImGuiObject gui; //GUI object
 
@@ -41,6 +41,10 @@ private:
 	Simplex::CameraManager* m_pCameraMngr = nullptr; //Singleton for the camera manager
 	ControllerInput* m_pController[8]; //Controller
 	uint m_uActCont = 0; //Active Controller of the Application
+	glm::vec3 position = glm::vec3(0, 0, 0);
+	float horizontalAngle = 3.14f; //horizontal angle of camera - starts at PI(180 degrees)
+	float verticalAngle = 0.0f; //verticle angle of camera
+
 
 public:
 #pragma region Constructor / Run / Destructor
