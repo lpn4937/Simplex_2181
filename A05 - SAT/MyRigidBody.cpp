@@ -86,7 +86,6 @@ void MyRigidBody::SetModelMatrix(matrix4 a_m4ModelMatrix)
 	m_m4ToWorld = a_m4ModelMatrix;
 
 	//Calculate the 8 corners of the cube
-	vector3 v3Corner[8];
 	//Back square
 	v3Corner[0] = m_v3MinL;
 	v3Corner[1] = vector3(m_v3MaxL.x, m_v3MinL.y, m_v3MinL.z);
@@ -272,21 +271,135 @@ void MyRigidBody::AddToRenderList(void)
 		else
 			m_pMeshMngr->AddWireCubeToRenderList(glm::translate(GetCenterGlobal()) * glm::scale(m_v3ARBBSize), C_YELLOW);
 	}
+	if (m_bVisibleSAT)
+	{
+		if (m_CollidingRBSet.size() == 0)
+		{
+			//Draw a square as the plane in between
+			//m_pMeshMngr->AddMeshToRenderList(glm::translate(GetCenterGlobal()) * glm::scale(m_v3ARBBSize), C_BLUE);
+		}
+	}
 }
 
 uint MyRigidBody::SAT(MyRigidBody* const a_pOther)
 {
-	/*
-	Your code goes here instead of this comment;
+	//15 total checks: 6 checks using X,Y,Z coords, 9 using cross product to get projection
+	//X,Y,Z of first object
+	vector3 axisX = glm::normalize(v3Corner[1] - v3Corner[0]);
+	vector3 axisY = glm::normalize(v3Corner[2] - v3Corner[0]);
+	vector3 axisZ = glm::normalize(v3Corner[4] - v3Corner[0]);
 
-	For this method, if there is an axis that separates the two objects
-	then the return will be different than 0; 1 for any separating axis
-	is ok if you are not going for the extra credit, if you could not
-	find a separating axis you need to return 0, there is an enum in
-	Simplex that might help you [eSATResults] feel free to use it.
-	(eSATResults::SAT_NONE has a value of 0)
-	*/
+	//X,Y,Z of second object
+	vector3 axisX2 = glm::normalize(a_pOther->v3Corner[1] - a_pOther->v3Corner[0]);
+	vector3 axisY2 = glm::normalize(a_pOther->v3Corner[2] - a_pOther->v3Corner[0]);
+	vector3 axisZ2 = glm::normalize(a_pOther->v3Corner[4] - a_pOther->v3Corner[0]);
+
+	//check if objects are colliding using X,Y,Z
+	if (SATHelper(axisX, a_pOther)) return eSATResults::SAT_AX;
+	if (SATHelper(axisY, a_pOther)) return eSATResults::SAT_AY;
+	if (SATHelper(axisZ, a_pOther)) return eSATResults::SAT_AZ;
+	if (SATHelper(axisX2, a_pOther)) return eSATResults::SAT_AX;
+	if (SATHelper(axisY2, a_pOther)) return eSATResults::SAT_AY;
+	if (SATHelper(axisZ2, a_pOther)) return eSATResults::SAT_AZ;
+
+	//cross products of axis of both
+	vector3 crossXX = glm::cross(axisX, axisX2);
+	vector3 crossXY = glm::cross(axisX, axisY2);
+	vector3 crossXZ = glm::cross(axisX, axisZ2);
+
+	vector3 crossYX = glm::cross(axisY, axisX2);
+	vector3 crossYY = glm::cross(axisY, axisY2);
+	vector3 crossYZ = glm::cross(axisY, axisZ2);
+
+	vector3 crossZX = glm::cross(axisZ, axisX2);
+	vector3 crossZY = glm::cross(axisZ, axisY2);
+	vector3 crossZZ = glm::cross(axisZ, axisZ2);
+
+	// putting cross product vectors in array
+	vector3 cross[9];
+	cross[0] = crossXX;
+	cross[1] = crossXY;
+	cross[2] = crossXZ;
+
+	cross[3] = crossYX;
+	cross[4] = crossYY;
+	cross[5] = crossYZ;
+
+	cross[6] = crossZX;
+	cross[7] = crossZY;
+	cross[8] = crossZZ;
+
+	//check if objects are colliding using cross product
+	for (int j = 0; j < 9; j++)
+	{
+		float min = 10000;
+		float max = -10000;
+		float min2 = 10000;
+		float max2 = -10000;
+
+		if (cross[j] != ZERO_V3)
+		{
+			for (int i = 0; i < 8; i++)
+			{
+				// get the dot product of all the points in the array
+				float temp = glm::dot(cross[j], v3Corner[i]);
+				float temp2 = glm::dot(cross[j], a_pOther->v3Corner[i]);
+
+				if (temp <= min)
+					min = temp;
+
+				if (temp >= max)
+					max = temp;
+				
+				if (temp2 <= min2)
+					min2 = temp2;
+
+				if (temp2 >= max2)
+					max2 = temp2;
+			}
+			if (min >= max2 || min2 >= max)
+			{
+				if (j == 0) return eSATResults::SAT_AXxBX;
+				if (j == 1) return eSATResults::SAT_AXxBY;
+				if (j == 2) return eSATResults::SAT_AXxBZ;
+				if (j == 3) return eSATResults::SAT_AYxBX;
+				if (j == 4) return eSATResults::SAT_AYxBY;
+				if (j == 5) return eSATResults::SAT_AXxBZ;
+				if (j == 6) return eSATResults::SAT_AZxBX;
+				if (j == 7) return eSATResults::SAT_AZxBY;
+				if (j == 7) return eSATResults::SAT_AZxBZ;
+			}
+		}
+	}
 
 	//there is no axis test that separates this two objects
 	return eSATResults::SAT_NONE;
+}
+bool MyRigidBody::SATHelper(vector3 axis, MyRigidBody* const a_pOther) {
+	//starting max and min values
+	float min = 100000;
+	float max = -100000;
+	float min2 = 100000;
+	float max2 = -100000;
+
+	//check if objects are colliding
+	for (int i = 0; i < 8; i++)
+	{
+		//dot product of all the points in array
+		float temp = glm::dot(axis, v3Corner[i]);
+		float temp2 = glm::dot(axis, a_pOther->v3Corner[i]);
+
+		if (temp <= min)
+			min = temp;
+
+		if (temp >= max)
+			max = temp;
+		
+		if (temp2 <= min2)
+			min2 = temp2;
+
+		if (temp2 >= max2)
+			max2 = temp2;
+	}
+	return (min >= max2 || min2 >= max) ? true : false; //not colliding
 }

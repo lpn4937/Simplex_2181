@@ -18,6 +18,7 @@ class MyRigidBody
 	bool m_bVisibleBS = false; //Visibility of bounding sphere
 	bool m_bVisibleOBB = true; //Visibility of Oriented bounding box
 	bool m_bVisibleARBB = true; //Visibility of axis (Re)aligned bounding box
+	bool m_bVisibleSAT = true; //Visibility of SAT plane
 
 	float m_fRadius = 0.0f; //Radius
 
@@ -35,6 +36,8 @@ class MyRigidBody
 	vector3 m_v3ARBBSize = ZERO_V3;// size of the Axis (Re)Alligned Bounding Box
 
 	matrix4 m_m4ToWorld = IDENTITY_M4; //Matrix that will take us from local to world coordinate
+	vector3 v3Corner[8];
+
 
 	std::set<MyRigidBody*> m_CollidingRBSet; //set of rigid bodies this one is colliding with
 
@@ -247,6 +250,7 @@ private:
 	OUTPUT: 0 for colliding, other = first axis that succeeds test
 	*/
 	uint SAT(MyRigidBody* const a_pOther);
+	bool SATHelper(vector3 axis, MyRigidBody* const a_pOther);
 };//class
 
 } //namespace Simplex
