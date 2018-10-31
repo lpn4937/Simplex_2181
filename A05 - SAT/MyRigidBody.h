@@ -21,6 +21,7 @@ class MyRigidBody
 	bool m_bVisibleSAT = true; //Visibility of SAT plane
 
 	float m_fRadius = 0.0f; //Radius
+	int result = 0; //which plane is found
 
 	vector3 m_v3ColorColliding = C_RED; //Color when colliding
 	vector3 m_v3ColorNotColliding = C_WHITE; //Color when not colliding
@@ -79,6 +80,13 @@ public:
 	OUTPUT: ---
 	*/
 	void AddToRenderList(void);
+
+	/*
+	USAGE: Will render the planes between bodies 
+	ARGUMENTS: ---
+	Output: ---
+	*/
+	void AddToRenderList(MyRigidBody* const a_pOther);
 
 	/*
 	USAGE: Clears the colliding list

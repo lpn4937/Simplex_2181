@@ -53,6 +53,7 @@ void Application::Update(void)
 
 	m_pSteve->AddToRenderList();
 	m_pSteveRB->AddToRenderList();
+	//m_pSteveRB->AddToRenderList(m_pCreeperRB);
 
 	m_pMeshMngr->Print("Colliding: ");
 	if (bColliding)

@@ -246,6 +246,7 @@ bool MyRigidBody::IsColliding(MyRigidBody* const a_pOther)
 		a_pOther->RemoveCollisionWith(this);
 	}
 
+	AddToRenderList(a_pOther);
 	return bColliding;
 }
 void MyRigidBody::AddToRenderList(void)
@@ -271,18 +272,96 @@ void MyRigidBody::AddToRenderList(void)
 		else
 			m_pMeshMngr->AddWireCubeToRenderList(glm::translate(GetCenterGlobal()) * glm::scale(m_v3ARBBSize), C_YELLOW);
 	}
+}
+
+void Simplex::MyRigidBody::AddToRenderList(MyRigidBody* const a_pOther)
+{
 	if (m_bVisibleSAT)
 	{
 		if (m_CollidingRBSet.size() == 0)
 		{
-			//Draw a square as the plane in between
-			//m_pMeshMngr->AddMeshToRenderList(glm::translate(GetCenterGlobal()) * glm::scale(m_v3ARBBSize), C_BLUE);
+			//std::cout << result << std::endl;
+			matrix4 mat = glm::translate((a_pOther->GetCenterGlobal() - GetCenterGlobal()) / 2 + GetCenterGlobal());
+			vector3 color = C_RED;
+			if (result == eSATResults::SAT_NONE) //no planes checked
+			{
+				mat *= glm::scale(vector3(0, 0, 0));
+			}
+			else if (result == eSATResults::SAT_AX) //left or right
+			{
+				mat *= glm::scale(vector3(0, 3, 3));
+				color = C_RED;
+			}
+			else if (result == eSATResults::SAT_AY) //up or down
+			{
+				mat = glm::rotate(mat, glm::radians(90.0f), glm::vec3(0.0f, 0.0f, 1.0f));
+				mat *= glm::scale(vector3(0, 3, 3));
+				color = C_GREEN;
+			}
+			else if (result == eSATResults::SAT_AZ) //forward or backward
+			{
+				mat = glm::rotate(mat, glm::radians(90.0f), glm::vec3(0.0f, 1.0f, 0.0f));
+				mat *= glm::scale(vector3(0, 3, 3));
+				color = C_BLUE;
+			}
+			else if (result == eSATResults::SAT_AXxBX)
+			{
+				mat = glm::rotate(mat, glm::radians(90.0f), glm::vec3(0.0f, 1.0f, 0.0f));
+				mat *= glm::scale(vector3(0, 3, 3));
+				color = C_BLACK;
+			}
+			else if (result == eSATResults::SAT_AXxBY)
+			{
+				mat = glm::rotate(mat, glm::radians(90.0f), glm::vec3(0.0f, 1.0f, 0.0f));
+				mat *= glm::scale(vector3(0, 3, 3));
+				color = C_BLACK;
+			}
+			else if (result == eSATResults::SAT_AXxBZ)
+			{
+				mat = glm::rotate(mat, glm::radians(90.0f), glm::vec3(0.0f, 1.0f, 0.0f));
+				mat *= glm::scale(vector3(0, 3, 3));
+				color = C_BLACK;
+			}
+			else if (result == eSATResults::SAT_AYxBX)
+			{
+				mat = glm::rotate(mat, glm::radians(90.0f), glm::vec3(0.0f, 1.0f, 0.0f));
+				mat *= glm::scale(vector3(0, 3, 3));
+				color = C_BLACK;
+			}
+			else if (result == eSATResults::SAT_AYxBY)
+			{
+				mat = glm::rotate(mat, glm::radians(90.0f), glm::vec3(0.0f, 1.0f, 0.0f));
+				mat *= glm::scale(vector3(0, 3, 3));
+				color = C_BLACK;
+			}
+			else if (result == eSATResults::SAT_AZxBX)
+			{
+				mat = glm::rotate(mat, glm::radians(90.0f), glm::vec3(0.0f, 1.0f, 0.0f));
+				mat *= glm::scale(vector3(0, 3, 3));
+				color = C_BLACK;
+			}
+			else if (result == eSATResults::SAT_AZxBY)
+			{
+				mat = glm::rotate(mat, glm::radians(90.0f), glm::vec3(0.0f, 1.0f, 0.0f));
+				mat *= glm::scale(vector3(0, 3, 3));
+				color = C_BLACK;
+			}
+			else if (result == eSATResults::SAT_AZxBZ)
+			{
+				mat = glm::rotate(mat, glm::radians(90.0f), glm::vec3(0.0f, 1.0f, 0.0f));
+				mat *= glm::scale(vector3(0, 3, 3));
+				color = C_BLACK;
+			}
+			m_pMeshMngr->AddCubeToRenderList(mat, color);
 		}
 	}
 }
 
 uint MyRigidBody::SAT(MyRigidBody* const a_pOther)
 {
+	//I referenced this github repo for most of this section https://github.com/Herm20/FreeFall/blob/master/Freefall/MyRigidBody.cpp
+	//I did a lot of consolidation and improvements such as making a helper function
+
 	//15 total checks: 6 checks using X,Y,Z coords, 9 using cross product to get projection
 	//X,Y,Z of first object
 	vector3 axisX = glm::normalize(v3Corner[1] - v3Corner[0]);
@@ -295,13 +374,30 @@ uint MyRigidBody::SAT(MyRigidBody* const a_pOther)
 	vector3 axisZ2 = glm::normalize(a_pOther->v3Corner[4] - a_pOther->v3Corner[0]);
 
 	//check if objects are colliding using X,Y,Z
-	if (SATHelper(axisX, a_pOther)) return eSATResults::SAT_AX;
-	if (SATHelper(axisY, a_pOther)) return eSATResults::SAT_AY;
-	if (SATHelper(axisZ, a_pOther)) return eSATResults::SAT_AZ;
-	if (SATHelper(axisX2, a_pOther)) return eSATResults::SAT_AX;
-	if (SATHelper(axisY2, a_pOther)) return eSATResults::SAT_AY;
-	if (SATHelper(axisZ2, a_pOther)) return eSATResults::SAT_AZ;
-
+	if (SATHelper(axisX, a_pOther)) {
+		result = eSATResults::SAT_AX; 
+		return eSATResults::SAT_AX;
+	}
+	if (SATHelper(axisY, a_pOther)) {
+		result = eSATResults::SAT_AY; 
+		return eSATResults::SAT_AY;
+	}
+	if (SATHelper(axisZ, a_pOther)) {
+		result = eSATResults::SAT_AZ; 
+		return eSATResults::SAT_AZ;
+	}
+	if (SATHelper(axisX2, a_pOther)) {
+		result = eSATResults::SAT_AX; 
+		return eSATResults::SAT_AX;
+	}
+	if (SATHelper(axisY2, a_pOther)) {
+		result = eSATResults::SAT_AY; 
+		return eSATResults::SAT_AY;
+	}
+	if (SATHelper(axisZ2, a_pOther)) {
+		result = eSATResults::SAT_AZ; 
+		return eSATResults::SAT_AZ;
+	}
 	//cross products of axis of both
 	vector3 crossXX = glm::cross(axisX, axisX2);
 	vector3 crossXY = glm::cross(axisX, axisY2);
@@ -359,20 +455,48 @@ uint MyRigidBody::SAT(MyRigidBody* const a_pOther)
 			}
 			if (min >= max2 || min2 >= max)
 			{
-				if (j == 0) return eSATResults::SAT_AXxBX;
-				if (j == 1) return eSATResults::SAT_AXxBY;
-				if (j == 2) return eSATResults::SAT_AXxBZ;
-				if (j == 3) return eSATResults::SAT_AYxBX;
-				if (j == 4) return eSATResults::SAT_AYxBY;
-				if (j == 5) return eSATResults::SAT_AXxBZ;
-				if (j == 6) return eSATResults::SAT_AZxBX;
-				if (j == 7) return eSATResults::SAT_AZxBY;
-				if (j == 7) return eSATResults::SAT_AZxBZ;
+				if (j == 0) {
+					result = eSATResults::SAT_AXxBX; 
+					return eSATResults::SAT_AXxBX;
+				}
+				if (j == 1) {
+					result = eSATResults::SAT_AXxBY; 
+					return eSATResults::SAT_AXxBY;
+				}
+				if (j == 2) {
+					result = eSATResults::SAT_AXxBZ; 
+					return eSATResults::SAT_AXxBZ;
+				}
+				if (j == 3) {
+					result = eSATResults::SAT_AYxBX; 
+					return eSATResults::SAT_AYxBX;
+				}
+				if (j == 4) {
+					result = eSATResults::SAT_AYxBY; 
+					return eSATResults::SAT_AYxBY;
+				}
+				if (j == 5) {
+					result = eSATResults::SAT_AXxBZ; 
+					return eSATResults::SAT_AXxBZ;
+				}
+				if (j == 6) {
+					result = eSATResults::SAT_AZxBX; 
+					return eSATResults::SAT_AZxBX;
+				}
+				if (j == 7) {
+					result = eSATResults::SAT_AZxBY; 
+					return eSATResults::SAT_AZxBY;
+				}
+				if (j == 8) {
+					result = eSATResults::SAT_AZxBZ; 
+					return eSATResults::SAT_AZxBZ;
+				}
 			}
 		}
 	}
 
 	//there is no axis test that separates this two objects
+	result = 0;
 	return eSATResults::SAT_NONE;
 }
 bool MyRigidBody::SATHelper(vector3 axis, MyRigidBody* const a_pOther) {
