@@ -166,7 +166,7 @@ void Simplex::MyOctant::Subdivide(void)
 		}
 	}
 }
-//ARBB Collision test
+//ARBB Collision of octant and entity
 bool Simplex::MyOctant::IsColliding(uint index)
 {
 	uint objectCount = entityManager->GetEntityCount();
@@ -176,25 +176,26 @@ bool Simplex::MyOctant::IsColliding(uint index)
 
 	MyEntity* entity = entityManager->GetEntity(index);
 	MyRigidBody* rb = entity->GetRigidBody();
-	vector3 min = rb->GetCenterGlobal();
-	vector3 max = rb->GetCenterGlobal();
+	vector3 entityCenter = rb->GetCenterGlobal();
+	//size of the cube considered so true will return if in more than one octant
+	vector3 halfWidth = rb->GetHalfWidth();
 
 	//check for x
-	if (octMax.x < min.x)
+	if (octMax.x < entityCenter.x - halfWidth.x)
 		return false;
-	if (octMin.x > max.x)
+	if (octMin.x > entityCenter.x + halfWidth.x)
 		return false;
 
 	//check for y
-	if (octMax.y < min.y)
+	if (octMax.y < entityCenter.y - halfWidth.y)
 		return false;
-	if (octMin.y > max.y)
+	if (octMin.y > entityCenter.y + halfWidth.y)
 		return false;
 
 	//check for z
-	if (octMax.z < min.z)
+	if (octMax.z < entityCenter.z - halfWidth.z)
 		return false;
-	if (octMin.z > max.z)
+	if (octMin.z > entityCenter.z + halfWidth.z)
 		return false;
 
 	return true;

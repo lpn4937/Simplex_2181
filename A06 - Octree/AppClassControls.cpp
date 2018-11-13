@@ -147,6 +147,9 @@ void Application::ProcessKeyReleased(sf::Event a_event)
 			
 		}
 		break;
+	case sf::Keyboard::L:
+		displayOctree = !displayOctree;
+		break;
 	case sf::Keyboard::LShift:
 	case sf::Keyboard::RShift:
 		m_bModifier = false;
